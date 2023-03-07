@@ -22,6 +22,8 @@
     "packages/*"
   ],
   "dependencies": {
-    "mysql2": "^2.3.3"
+    "csv-parser": "^3.0.0",
+    "mysql2": "^2.3.3",
+    "parse-multipart-data": "^1.5.0"
   }
 }

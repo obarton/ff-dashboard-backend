@@ -5,7 +5,7 @@ export function API({ stack }: StackContext) {
     notifications: {
       myNotification: {
         function: {
-          handler: "packages/functions/src/uploadNotification.handler",
+          handler: "packages/functions/src/upload.handler",
         },
         events: ["object_created"],
       },
@@ -21,10 +21,11 @@ export function API({ stack }: StackContext) {
       }
     },
     routes: {
-      "GET /stats": "packages/functions/src/lambda.handler",
-      "POST /upload": "packages/functions/src/upload.handler",
+      "GET /stats": "packages/functions/src/getStats.handler",
+      "GET /events": "packages/functions/src/getEvents.handler",
     },
   });
+  
   stack.addOutputs({
     ApiEndpoint: api.url,
     S3Bucket: bucket.bucketName,

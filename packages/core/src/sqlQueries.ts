@@ -29,7 +29,8 @@ export const InsertEventsSQL = `INSERT INTO events
 (
     event_id, 
     event_name, 
-    venue_name 
+    venue_name,
+    event_date 
 ) VALUES ?`
 
 export const InsertOrdersSQL = `INSERT INTO orders 
@@ -42,7 +43,8 @@ export const InsertOrdersSQL = `INSERT INTO orders
     ticketing_platform_fees,
     ticketing_platform_payment_processing_fees,
     order_type,
-    order_notes
+    order_notes,
+    attendee_status
 ) VALUES ?`
 
 export const InsertSquareDoorSalesSQL = `INSERT INTO square_door_sales 

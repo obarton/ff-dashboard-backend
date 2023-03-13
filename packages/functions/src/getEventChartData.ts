@@ -11,7 +11,7 @@ export async function handler() {
       database: process.env.MYSQL_DB,
     });
 
-    const eventsQuery = `SELECT event_name, event_date, SUM(total_paid) as total_revenue FROM orders
+    const eventsQuery = `SELECT event_name, event_date, SUM(total_paid) as total_revenue, COUNT(*) as total_qty FROM orders
     JOIN events on orders.event_id = events.event_id
     AND order_type IN ('Free Order', 'Eventbrite Completed')
     GROUP BY events.event_id
@@ -23,7 +23,7 @@ export async function handler() {
     const data = eventData.map((item: any) => {
       return {
           ...item,
-          event_date: moment(item.event_date).format("MMM Do YY")
+          event_date: moment(item.event_date).format('MM/DD/YY')
       }
     })
   

@@ -10,9 +10,10 @@ export async function handler() {
     });
 
     const eventsQuery = `SELECT event_ticket_counts.event_id, event_data.event_name, event_data.event_date, event_ticket_counts.ticket_qty FROM
-    (SELECT event_id, COUNT(*) as ticket_qty from orders o group by o.event_id) as event_ticket_counts
+      (SELECT event_id, COUNT(*) as ticket_qty from orders o group by o.event_id) as event_ticket_counts
       JOIN
-      (SELECT * from events) as event_data on event_ticket_counts.event_id = event_data.event_id`
+      (SELECT * from events) as event_data on event_ticket_counts.event_id = event_data.event_id
+      ORDER BY event_data.event_date DESC`
     const [data, eventFields] = await connection.execute(eventsQuery);
 
     console.log(JSON.stringify(data, null, 2))

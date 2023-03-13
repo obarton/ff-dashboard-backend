@@ -1,13 +1,4 @@
 const mysql = require('mysql2/promise');
-const moment = require('moment');
-
-const sumCounts = (jsonArray: any[]) => {
-  let sum = 0;
-  for (let i = 0; i < jsonArray.length; i++) {
-    sum += jsonArray[i].count;
-  }
-  return sum;
-}
 
 export async function handler() {
   try {

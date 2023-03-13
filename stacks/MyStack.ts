@@ -24,6 +24,7 @@ export function API({ stack }: StackContext) {
       "GET /stats": "packages/functions/src/getStats.handler",
       "GET /events": "packages/functions/src/getEvents.handler",
       "GET /attendees": "packages/functions/src/getAttendees.handler",
+      "GET /eventchart": "packages/functions/src/getEventChartData.handler",
     },
   });
   

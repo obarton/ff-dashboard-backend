@@ -26,9 +26,9 @@ export async function handler(event: any) {
       SELECT *, COUNT(email) as total_orders FROM attendees
       GROUP BY email
   ) as unique_attendees`
-    const [pageLimitData, pageLimitFields] = await connection.execute(pageLimitQuery);
+    const [pageLimitData] = await connection.execute(pageLimitQuery);
 
-    numRows = pageLimitData[0].numRows;
+    numRows = pageLimitData[0].unique_attendees_count;
     numPages = Math.ceil(numRows / numPerPage);
     console.log('pageLimitData:', JSON.stringify(pageLimitData));
     console.log('numRows:', JSON.stringify(numRows));
@@ -38,8 +38,9 @@ export async function handler(event: any) {
     GROUP BY email
     ORDER BY ${orderBy} DESC
     LIMIT ${limit}`;
-    const [paginatedAttendeeData, paginatedAttendeeFields] = await connection.execute(paginatedAttendeeQuery);
-    console.log('paginatedAttendeeData:', JSON.stringify(paginatedAttendeeData));
+    const [paginatedAttendeeData] = await connection.execute(paginatedAttendeeQuery);
+
+    const totalResults = numRows;
 
     var responsePayload: any = {
       results: paginatedAttendeeData
@@ -47,6 +48,7 @@ export async function handler(event: any) {
 
     if (page < numPages) {
       responsePayload.pagination = {
+        totalResults,
         current: page,
         perPage: numPerPage,
         previous: page > 0 ? page - 1 : undefined,

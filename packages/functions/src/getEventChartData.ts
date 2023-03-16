@@ -19,7 +19,7 @@ export async function handler() {
     LIMIT 12`
     const [eventData, eventFields] = await connection.execute(eventsQuery);
 
-    console.log(JSON.stringify(eventData, null, 2))
+    //console.log(JSON.stringify(eventData, null, 2))
     const data = eventData.map((item: any) => {
       return {
           ...item,

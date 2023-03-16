@@ -16,7 +16,7 @@ export async function handler() {
       ORDER BY event_data.event_date DESC`
     const [data, eventFields] = await connection.execute(eventsQuery);
 
-    console.log(JSON.stringify(data, null, 2))
+    //console.log(JSON.stringify(data, null, 2))
   
     const response = { data }
 

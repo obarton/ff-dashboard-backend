@@ -10,8 +10,8 @@ export async function handler(event: any) {
     });
     
     const { queryStringParameters: { pageSize, pageNum, orderBy } } = event;
-    console.log(`pageSize ${pageSize}`)
-    console.log(`pageNum ${pageNum}`)
+    //console.log(`pageSize ${pageSize}`)
+    //console.log(`pageNum ${pageNum}`)
 
     var numRows;
     var queryPagination;
@@ -30,9 +30,9 @@ export async function handler(event: any) {
 
     numRows = pageLimitData[0].unique_attendees_count;
     numPages = Math.ceil(numRows / numPerPage);
-    console.log('pageLimitData:', JSON.stringify(pageLimitData));
-    console.log('numRows:', JSON.stringify(numRows));
-    console.log('numPages:', JSON.stringify(numPages));
+    //console.log('pageLimitData:', JSON.stringify(pageLimitData));
+    //console.log('numRows:', JSON.stringify(numRows));
+    //console.log('numPages:', JSON.stringify(numPages));
 
     const paginatedAttendeeQuery = `SELECT *, COUNT(email) as total_orders FROM attendees
     GROUP BY email

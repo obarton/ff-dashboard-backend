@@ -26,6 +26,7 @@ export function API({ stack }: StackContext) {
       "GET /eventstickets": "packages/functions/src/getEventsByTicketType.handler",
       "GET /attendees": "packages/functions/src/getAttendees.handler",
       "GET /eventchart": "packages/functions/src/getEventChartData.handler",
+      "GET /email": "packages/functions/src/getEmailMarketing.handler",
     },
   });
   

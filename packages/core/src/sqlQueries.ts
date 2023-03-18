@@ -78,3 +78,87 @@ export const InsertSquareDoorSalesSQL = `INSERT INTO square_door_sales
     itemization_type,
     fufillment_note
 ) VALUES ?`
+
+export const InsertSocialReachFacebookSQL = `INSERT INTO social_reach_facebook 
+(
+    date,
+    reach,
+    platform
+) VALUES ?`
+
+export const GetOrdersSQL = `SELECT order_type, SUM(total_paid) as order_total, COUNT(order_num) as order_qty FROM orders
+JOIN events on orders.event_id = events.event_id
+GROUP BY order_type`
+
+export const GetAttendeesSQL = `SELECT attendee_status, Count(*) FROM attendees 
+GROUP BY attendee_status`
+
+export const GetSalesSQL = `SELECT online_ticket_quantity, online_ticket_revenue, door_ticket_revenue FROM
+(
+  SELECT SUM(q) as online_ticket_quantity, SUM(t) as online_ticket_revenue
+  FROM
+    (SELECT a.*, o.quantity_purchased as q, o.total_spent as t
+      FROM 
+      (
+          SELECT *, COUNT(order_num) as quantity_purchased, SUM(total_paid) as total_spent FROM orders
+          GROUP BY order_num
+      ) as o
+      JOIN 
+      (
+        SELECT *, SUM(quantity) FROM attendees
+        GROUP BY order_num
+      ) as a 
+      ON o.order_num = a.order_num
+    GROUP BY o.order_num) as grouped_orders
+    ) as online_sales_data, 
+    (SELECT SUM(gross_sales) as door_ticket_revenue FROM square_door_sales) as door_sales_data
+`
+
+export const GetRepeatCheckInsQuery = `
+SELECT * FROM (
+      SELECT Count(*) as repeat_check_in_count FROM (
+          SELECT email, MIN(date_attending) as first_date_attending, MAX(date_attending) as latest_date_attending, MAX(check_in_date) as most_recent_check_in, COUNT(*) as num_dates_attended FROM
+              (
+                  SELECT email, date_attending, check_in_date, COUNT(*) as event_attendee_count FROM attendees
+                  WHERE attendee_status = 'Checked In'
+                  GROUP BY email, date_attending
+                  ORDER BY email
+              ) as attendee_dates_checked_in_counts
+              GROUP BY email
+              ORDER BY num_dates_attended DESC
+      ) as dates_checked_in_counts_by_email
+      WHERE num_dates_attended > 1
+  ) as repeat_check_in_count,
+  (
+  -- Get one-time check ins count
+      SELECT Count(*) as single_check_in_count FROM (
+          SELECT email, MIN(date_attending) as first_date_attending, MAX(date_attending) as latest_date_attending, MAX(check_in_date) as most_recent_check_in, COUNT(*) as num_dates_attended FROM
+              (
+                  SELECT email, date_attending, check_in_date, COUNT(*) as event_attendee_count FROM attendees
+                  WHERE attendee_status = 'Checked In'
+                  GROUP BY email, date_attending
+                  ORDER BY email
+              ) as attendee_dates_checked_in_counts
+              GROUP BY email
+              ORDER BY num_dates_attended DESC
+      ) as dates_checked_in_counts_by_email
+      WHERE num_dates_attended = 1
+  ) as single_check_in_count`
+
+  export const GetFacebookSocialReachQuery = `
+  SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, SUM(reach) as total_reach, platform FROM social_reach_facebook
+    GROUP BY month, platform;
+  `
+
+  export const GetCurrentMonthFacebookSocialReachQuery = `
+  SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, SUM(reach) as total_reach, platform from social_reach_facebook 
+  WHERE MONTH(date) = MONTH(now()) and YEAR(date) = YEAR(now())
+  GROUP BY platform;
+  `
+
+  export const GetPreviousMonthFacebookSocialReachQuery = `
+  SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, SUM(reach) as total_reach, platform from social_reach_facebook 
+    WHERE date BETWEEN DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01 00:00:00')
+    AND DATE_FORMAT(LAST_DAY(NOW() - INTERVAL 1 MONTH), '%Y-%m-%d 23:59:59')
+    GROUP BY platform;
+  `

@@ -22,8 +22,10 @@
     "packages/*"
   ],
   "dependencies": {
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
     "csv-parser": "^3.0.0",
     "html-escaper": "^3.0.3",
+    "iconv-lite": "^0.6.3",
     "moment": "^2.29.4",
     "mysql2": "^2.3.3",
     "parse-multipart-data": "^1.5.0"

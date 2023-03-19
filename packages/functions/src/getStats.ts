@@ -1,4 +1,4 @@
-import { GetAttendeesSQL, GetCurrentMonthFacebookSocialReachQuery, GetFacebookSocialReachQuery, GetOrdersSQL, GetPreviousMonthFacebookSocialReachQuery, GetRepeatCheckInsQuery, GetSalesSQL } from "@dashboard-backend/core/sqlQueries";
+import { GetAttendeesSQL, GetCurrentMonthFacebookSocialReachQuery, GetFacebookSocialProfileVisitsQuery, GetFacebookSocialReachQuery, GetOrdersSQL, GetPreviousMonthFacebookSocialReachQuery, GetRepeatCheckInsQuery, GetSalesSQL } from "@dashboard-backend/core/sqlQueries";
 
 const mysql = require('mysql2/promise');
 
@@ -26,7 +26,8 @@ export async function handler() {
     const [facebookSocialReachResult] = await connection.execute(GetFacebookSocialReachQuery);
     const [currentMonthFacebookSocialReachResult] = await connection.execute(GetCurrentMonthFacebookSocialReachQuery);
     const [previousMonthFacebookSocialReachResult] = await connection.execute(GetPreviousMonthFacebookSocialReachQuery);
-
+    const [facebookSocialProfileVisitsResult] = await connection.execute(GetFacebookSocialProfileVisitsQuery);
+    
     const attendeeData = attendeeResult.map((record: any) => {
       return {
         status: record['attendee_status'],
@@ -90,6 +91,9 @@ export async function handler() {
       reach: {
         facebook: facebookSocialReachResult,
         ...recentReach
+      },
+      profile_visits: {
+        facebookSocialProfileVisitsResult
       }  
     }
 

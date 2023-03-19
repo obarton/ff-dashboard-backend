@@ -86,6 +86,13 @@ export const InsertSocialReachFacebookSQL = `INSERT INTO social_reach_facebook
     platform
 ) VALUES ?`
 
+export const InsertSocialProfileVisitsFacebookSQL = `INSERT INTO social_profile_visits_facebook 
+(
+    date,
+    profile_visits,
+    platform
+) VALUES ?`
+
 export const GetOrdersSQL = `SELECT order_type, SUM(total_paid) as order_total, COUNT(order_num) as order_qty FROM orders
 JOIN events on orders.event_id = events.event_id
 GROUP BY order_type`
@@ -161,4 +168,9 @@ SELECT * FROM (
     WHERE date BETWEEN DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01 00:00:00')
     AND DATE_FORMAT(LAST_DAY(NOW() - INTERVAL 1 MONTH), '%Y-%m-%d 23:59:59')
     GROUP BY platform;
+  `
+
+  export const GetFacebookSocialProfileVisitsQuery = `
+  SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, SUM(profile_visits) as total_profile_visits, platform FROM social_profile_visits_facebook
+    GROUP BY month, platform;
   `

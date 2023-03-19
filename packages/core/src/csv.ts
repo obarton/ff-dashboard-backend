@@ -165,3 +165,14 @@ export const mapFacebookReachCsvValues = (row: any, index: number) => {
     reach: row['Reach']
   }
 }
+
+export const mapFacebookProfileVisitsCsvValues = (row: any, index: number) => {
+  if (index === 0) {
+    return;
+  }
+
+  return {
+    date: row['Date'],
+    profile_visits: row['ProfileVisits']
+  }
+}

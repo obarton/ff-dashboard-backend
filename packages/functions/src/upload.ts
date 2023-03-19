@@ -4,14 +4,16 @@ import {
   InsertEventsSQL, 
   InsertOrdersSQL, 
   InsertSquareDoorSalesSQL, 
-  InsertSocialReachFacebookSQL 
+  InsertSocialReachFacebookSQL, 
+  InsertSocialProfileVisitsFacebookSQL
 } from "@dashboard-backend/core/sqlQueries";
 import { 
   mapAttendeesCsvValues, 
   mapEventsCsvValues, 
   mapOrdersCsvValues, 
   mapSquareDoorSalesCsvValues, 
-  mapFacebookReachCsvValues 
+  mapFacebookReachCsvValues, 
+  mapFacebookProfileVisitsCsvValues
 } from "@dashboard-backend/core/csv";
 import { convertDateToMysqlFormat } from "@dashboard-backend/core/date";
 
@@ -77,8 +79,6 @@ const uploadFacebookReachData = async (rows: any, connection: any) => {
         reach,
         platform
       ] 
-
-      console.log(dbRow)
       return dbRow;
     }
   })
@@ -93,8 +93,6 @@ const uploadFacebookReachData = async (rows: any, connection: any) => {
         reach,
         platform
       ] 
-
-      console.log(dbRow)
       return dbRow;
     }
   })
@@ -106,8 +104,61 @@ const uploadFacebookReachData = async (rows: any, connection: any) => {
   console.log('social_reach_facebook inserted successfully') 
 }
 
+const uploadFacebookProfileVisitsData = async (rows: any, connection: any) => {
+  const parsedCsvProfileVisitsData = rows.map(mapFacebookProfileVisitsCsvValues);
+
+  const nonNullProfileVisitsData = parsedCsvProfileVisitsData.filter((el: any) => el);
+  const [facebookProfileVisitsData, instagramProfileVisitsData] = splitProfileVisitsArray(nonNullProfileVisitsData)
+  const cleanedFacebookProfileVisitsData = facebookProfileVisitsData.filter(f => f.profile_visits != "Facebook Page likes" && f.date != "Instagram profile visits").filter(e => Object.keys(e).length != 0)
+  const clearnedInstagramProfileVisitsData = instagramProfileVisitsData.filter(e => Object.keys(e).length != 0)
+
+  console.log(`cleanedFacebookProfileVisitsData ${JSON.stringify(cleanedFacebookProfileVisitsData, null, 2)}`)
+  console.log(`clearnedInstagramProfileVisitsData ${JSON.stringify(clearnedInstagramProfileVisitsData, null, 2)}`)
+
+  const facebookProfileVisitsValues = cleanedFacebookProfileVisitsData.map(e => {
+    const { date, profile_visits } = e;
+    const platform = "facebook";
+
+    if (date) {
+      const dbRow = [
+        convertDateToMysqlFormat(date),
+        profile_visits,
+        platform
+      ] 
+      return dbRow;
+    }
+  })
+
+    const instagramProfileVisitsValues = clearnedInstagramProfileVisitsData.map(e => {
+    const { date, profile_visits } = e;
+    const platform = "instagram";
+
+    if (date) {
+      const dbRow = [
+        convertDateToMysqlFormat(date),
+        profile_visits,
+        platform
+      ] 
+      return dbRow;
+    }
+  })
+
+  const socialProfileVisitsValues = [...facebookProfileVisitsValues, ...instagramProfileVisitsValues].filter(n => n);
+  console.log(`socialProfileVisitsValues ${JSON.stringify(socialProfileVisitsValues, null, 2)}`) 
+
+  await connection.query(InsertSocialProfileVisitsFacebookSQL, [socialProfileVisitsValues])
+  console.log('social_profile_visits_facebook inserted successfully') 
+}
+
 function splitArray(arr: any[]) {
   const index = arr.findIndex((el: any) => el.reach === "Instagram reach");
+  const before = arr.slice(0, index);
+  const after = arr.slice(index + 1);
+  return [before, after];
+}
+
+function splitProfileVisitsArray(arr: any[]) {
+  const index = arr.findIndex((el: any) => el.profile_visits === "Instagram followers");
   const before = arr.slice(0, index);
   const after = arr.slice(index + 1);
   return [before, after];
@@ -157,6 +208,19 @@ export async function handler(event: any) {
           rows.push(row);
       }).on('end', async () => {                      
         await uploadFacebookReachData(rows, connection)    
+      })
+    } else if (key.includes("---FacebookProfileVisits")) {
+      await s3.getObject({ Bucket: bucketName, Key: key })
+      .createReadStream()
+      .pipe(iconv.decodeStream('utf16-le'))
+      .pipe(csv({
+        skipLines: 1,
+        headers: ["Date", "ProfileVisits"]
+      }))
+      .on('data', (row: any) => {
+          rows.push(row);
+      }).on('end', async () => {                      
+        await uploadFacebookProfileVisitsData(rows, connection)    
       })
     }
 

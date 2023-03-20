@@ -5,7 +5,9 @@ import {
   InsertOrdersSQL, 
   InsertSquareDoorSalesSQL, 
   InsertSocialReachFacebookSQL, 
-  InsertSocialProfileVisitsFacebookSQL
+  InsertSocialProfileVisitsFacebookSQL,
+  InsertSocialFollowersFacebookSQL,
+  InsertTikTokFollowersSQL
 } from "@dashboard-backend/core/sqlQueries";
 import { 
   mapAttendeesCsvValues, 
@@ -13,7 +15,9 @@ import {
   mapOrdersCsvValues, 
   mapSquareDoorSalesCsvValues, 
   mapFacebookReachCsvValues, 
-  mapFacebookProfileVisitsCsvValues
+  mapFacebookProfileVisitsCsvValues,
+  mapFacebookFollowersCsvValues,
+  mapTikTokFollowersCsvValues
 } from "@dashboard-backend/core/csv";
 import { convertDateToMysqlFormat } from "@dashboard-backend/core/date";
 
@@ -98,7 +102,6 @@ const uploadFacebookReachData = async (rows: any, connection: any) => {
   })
 
   const socialReachValues = [...facebookReachValues, ...instagramReachValues].filter(n => n);
-  console.log(`socialReachValues ${JSON.stringify(socialReachValues, null, 2)}`) 
 
   await connection.query(InsertSocialReachFacebookSQL, [socialReachValues])
   console.log('social_reach_facebook inserted successfully') 
@@ -111,9 +114,6 @@ const uploadFacebookProfileVisitsData = async (rows: any, connection: any) => {
   const [facebookProfileVisitsData, instagramProfileVisitsData] = splitProfileVisitsArray(nonNullProfileVisitsData)
   const cleanedFacebookProfileVisitsData = facebookProfileVisitsData.filter(f => f.profile_visits != "Facebook Page likes" && f.date != "Instagram profile visits").filter(e => Object.keys(e).length != 0)
   const clearnedInstagramProfileVisitsData = instagramProfileVisitsData.filter(e => Object.keys(e).length != 0)
-
-  console.log(`cleanedFacebookProfileVisitsData ${JSON.stringify(cleanedFacebookProfileVisitsData, null, 2)}`)
-  console.log(`clearnedInstagramProfileVisitsData ${JSON.stringify(clearnedInstagramProfileVisitsData, null, 2)}`)
 
   const facebookProfileVisitsValues = cleanedFacebookProfileVisitsData.map(e => {
     const { date, profile_visits } = e;
@@ -144,11 +144,59 @@ const uploadFacebookProfileVisitsData = async (rows: any, connection: any) => {
   })
 
   const socialProfileVisitsValues = [...facebookProfileVisitsValues, ...instagramProfileVisitsValues].filter(n => n);
-  console.log(`socialProfileVisitsValues ${JSON.stringify(socialProfileVisitsValues, null, 2)}`) 
 
   await connection.query(InsertSocialProfileVisitsFacebookSQL, [socialProfileVisitsValues])
   console.log('social_profile_visits_facebook inserted successfully') 
 }
+
+const uploadFacebookFollowersData = async (rows: any, connection: any) => {
+  const parsedCsvFollowersData = rows.map(mapFacebookFollowersCsvValues);
+
+  const nonNullFollowersData = parsedCsvFollowersData.filter((el: any) => el);
+  const [facebookFollowersData, instagramFollowersData] = splitFollowersArray(nonNullFollowersData)
+  const cleanedFacebookFollowersData = facebookFollowersData.filter(f => f.new_followers != "New Facebook Page likes" && f.date != "New Instagram followers").filter(e => Object.keys(e).length != 0)
+  const clearnedInstagramFollowersData = instagramFollowersData.filter(e => Object.keys(e).length != 0)
+
+  const facebookFollowersValues = cleanedFacebookFollowersData.map(e => {
+    const { date, new_followers } = e;
+    const platform = "facebook";
+
+    if (date) {
+      const dbRow = [
+        convertDateToMysqlFormat(date),
+        new_followers,
+        platform
+      ] 
+      return dbRow;
+    }
+  })
+
+    const instagramFollowersValues = clearnedInstagramFollowersData.map(e => {
+    const { date, new_followers } = e;
+    const platform = "instagram";
+
+    if (date) {
+      const dbRow = [
+        convertDateToMysqlFormat(date),
+        new_followers,
+        platform
+      ] 
+      return dbRow;
+    }
+  })
+
+  const socialFollowersValues = [...facebookFollowersValues, ...instagramFollowersValues].filter(n => n);
+
+  await connection.query(InsertSocialFollowersFacebookSQL, [socialFollowersValues])
+  console.log('social_followers_facebook inserted successfully') 
+}
+
+const uploadTikTokFollowersCsvData = async (rows: any, connection: any) => {
+  const tiktokFollowersValues = rows.map(mapTikTokFollowersCsvValues);
+  await connection.query(InsertTikTokFollowersSQL, [tiktokFollowersValues])
+  console.log('social_followers_tiktok inserted successfully') 
+}
+
 
 function splitArray(arr: any[]) {
   const index = arr.findIndex((el: any) => el.reach === "Instagram reach");
@@ -159,6 +207,13 @@ function splitArray(arr: any[]) {
 
 function splitProfileVisitsArray(arr: any[]) {
   const index = arr.findIndex((el: any) => el.profile_visits === "Instagram followers");
+  const before = arr.slice(0, index);
+  const after = arr.slice(index + 1);
+  return [before, after];
+}
+
+function splitFollowersArray(arr: any[]) {
+  const index = arr.findIndex((el: any) => el.new_followers === "New Instagram followers");
   const before = arr.slice(0, index);
   const after = arr.slice(index + 1);
   return [before, after];
@@ -221,6 +276,28 @@ export async function handler(event: any) {
           rows.push(row);
       }).on('end', async () => {                      
         await uploadFacebookProfileVisitsData(rows, connection)    
+      })
+    } else if (key.includes("---FacebookNewFollowers")) {
+      await s3.getObject({ Bucket: bucketName, Key: key })
+      .createReadStream()
+      .pipe(iconv.decodeStream('utf16-le'))
+      .pipe(csv({
+        skipLines: 1,
+        headers: ["Date", "NewFollowers"]
+      }))
+      .on('data', (row: any) => {
+          rows.push(row);
+      }).on('end', async () => {                      
+        await uploadFacebookFollowersData(rows, connection)    
+      })
+    } else if (key.includes("---TikTokFollowers")) {
+      await s3.getObject({ Bucket: bucketName, Key: key })
+      .createReadStream()
+      .pipe(csv())
+      .on('data', (row: any) => {
+          rows.push(row);
+      }).on('end', async () => {                      
+        await uploadTikTokFollowersCsvData(rows, connection)    
       })
     }
 

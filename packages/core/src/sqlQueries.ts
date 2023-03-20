@@ -93,6 +93,20 @@ export const InsertSocialProfileVisitsFacebookSQL = `INSERT INTO social_profile_
     platform
 ) VALUES ?`
 
+export const InsertSocialFollowersFacebookSQL = `INSERT INTO social_followers_facebook 
+(
+    date,
+    new_followers,
+    platform
+) VALUES ?`
+
+export const InsertTikTokFollowersSQL = `INSERT INTO social_followers_tiktok 
+(
+    date,
+    new_followers,
+    total_followers
+) VALUES ?`
+
 export const GetOrdersSQL = `SELECT order_type, SUM(total_paid) as order_total, COUNT(order_num) as order_qty FROM orders
 JOIN events on orders.event_id = events.event_id
 GROUP BY order_type`
@@ -174,3 +188,9 @@ SELECT * FROM (
   SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, SUM(profile_visits) as total_profile_visits, platform FROM social_profile_visits_facebook
     GROUP BY month, platform;
   `
+
+  export const GetFacebookFollowersQuery = `SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, SUM(new_followers) as total_new_followers, platform FROM social_followers_facebook
+  GROUP BY month, platform;`
+
+  export const GetTikTokFollowersQuery = `SELECT DATE_FORMAT(date, '%Y-%m-01') AS month, SUM(new_followers) as total_new_followers, total_followers FROM social_followers_tiktok
+  GROUP BY month`

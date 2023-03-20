@@ -22,6 +22,7 @@ export function API({ stack }: StackContext) {
     },
     routes: {
       "GET /stats": "packages/functions/src/getStats.handler",
+      "GET /social/stats": "packages/functions/src/getSocialStats.handler",
       "GET /events": "packages/functions/src/getEvents.handler",
       "GET /eventstickets": "packages/functions/src/getEventsByTicketType.handler",
       "GET /attendees": "packages/functions/src/getAttendees.handler",

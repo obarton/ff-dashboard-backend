@@ -55,7 +55,6 @@ export async function handler() {
         }
       },
     }
-    console.log(`recentReach ${JSON.stringify(recentReach, null, 2)}`)
 
     const online_ticket_total = salesResult[0]['online_ticket_revenue'];
     const door_ticket_total = salesResult[0]['door_ticket_revenue'];

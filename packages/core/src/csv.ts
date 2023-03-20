@@ -176,3 +176,28 @@ export const mapFacebookProfileVisitsCsvValues = (row: any, index: number) => {
     profile_visits: row['ProfileVisits']
   }
 }
+
+export const mapFacebookFollowersCsvValues = (row: any, index: number) => {
+  if (index === 0) {
+    return;
+  }
+
+  return {
+    date: row['Date'],
+    new_followers: row['NewFollowers']
+  }
+}
+
+export const mapTikTokFollowersCsvValues = (row: any, index: number) => {
+  const rowHeaders = Object.keys(row);
+  const date = row[rowHeaders[0]];
+  const new_followers = row['Difference in followers from previous day'];
+  const total_followers = row['Followers'];
+
+  return [
+    date, 
+    new_followers,
+    total_followers
+  ]
+}
+
